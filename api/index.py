@@ -2,13 +2,17 @@ from flask import Flask, render_template, request, jsonify
 import sys
 import os
 
-# Menambahkan root direktori ke path agar bisa membaca main.py
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Mengunci path folder templates agar terbaca absolut di server Vercel
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+template_dir = os.path.join(base_dir, 'templates')
+
+# Menambahkan root direktori ke sys.path untuk membaca main.py
+sys.path.append(base_dir)
 
 # Mengimpor variabel dan fungsi langsung dari file main.py asli Anda
 from main import PROVIDERS, normalize_phone
 
-app = Flask(__name__, template_folder='../templates')
+app = Flask(__name__, template_folder=template_dir)
 
 @app.route('/')
 def home():
@@ -46,5 +50,3 @@ def run_spam():
         "target": no_hp,
         "results": results
     })
-
-app.debug = True
