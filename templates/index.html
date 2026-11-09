@@ -3,120 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPAMSCAM Dashboard</title>
-    <script src="https://jsdelivr.net"></script>
+    <title>SPAMSCAM Web UI</title>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .banner {
+            color: #58a6ff;
+            text-align: center;
+            font-size: 14px;
+            white-space: pre;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #8b949e;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        input:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #238636;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2ea043;
+        }
+        button:disabled {
+            background-color: #484f58;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 12px;
+            text-align: center;
+            color: #e3b341;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4">
-
-    <div class="w-full max-w-md bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-700">
-        <div class="text-center mb-6">
-            <h1 class="text-3xl font-black tracking-wider text-cyan-400">SPAMSCAM</h1>
-            <p class="text-sm text-gray-400 mt-1">Multi-provider · Vercel Deployment</p>
+<body>
+    <div class="container">
+        <!-- Teks Banner tiruan dari kode main.py kamu -->
+        <div class="banner">
+███████╗██████╗  █████╗ ███╗   ███╗███████╗ ██████╗
+██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██╔════╝
+███████╗██████╔╝███████║██╔████╔██║███████╗██║     
+╚════██║██╔═══╝ ██╔══██║██║╚██╔╝██║╚════██║██║     
+███████║██║     ██║  ██║██║ ╚═╝ ██║███████║╚██████╗
+╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚═════╝
         </div>
 
-        <div class="space-y-5">
-            <!-- Input Nomor HP -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-300 mb-2">Nomor HP Target</label>
-                <input type="text" id="phone" placeholder="Contoh: 089535861960" 
-                       class="w-full px-4 py-3 bg-gray-950 border border-gray-700 rounded-xl focus:outline-none focus:border-cyan-500 text-white placeholder-gray-600 transition">
+        <form id="spamForm">
+            <div class="form-group">
+                <label>Nomor HP Target:</label>
+                <input type="text" id="noHp" placeholder="Contoh: 08978397772" required>
             </div>
-
-            <!-- Input Jumlah Resend (Range Slider) -->
-            <div>
-                <div class="flex justify-between items-center mb-2">
-                    <label class="text-sm font-semibold text-gray-300">Jumlah Resend (Siklus)</label>
-                    <span id="rangeValue" class="px-3 py-1 bg-cyan-500/20 text-cyan-400 font-bold rounded-md border border-cyan-500/30 text-sm">1</span>
-                </div>
-                
-                <div class="flex items-center space-x-4">
-                    <input type="range" id="cycles" min="1" max="20" value="1" 
-                           oninput="document.getElementById('rangeValue').innerText = this.value"
-                           class="w-full h-2 bg-gray-950 rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none">
-                </div>
-                <p class="text-xs text-gray-500 mt-2">* Jeda cooldown otomatis dikontrol oleh browser agar aman dari limit server.</p>
+            <div class="form-group">
+                <label>Jumlah Resend (Siklus):</label>
+                <input type="number" id="jmlResend" value="1" min="1" required>
             </div>
-
-            <button id="btnSend" onclick="startSpamProcess()" 
-                    class="w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-gray-950 font-bold rounded-xl transition duration-200 cursor-pointer shadow-lg shadow-cyan-500/20">
-                Tembak OTP!
-            </button>
-        </div>
-
-        <!-- Log Output -->
-        <div id="logSection" class="mt-6 hidden">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Log Aktivitas:</h3>
-            <div id="logOutput" class="bg-gray-950 rounded-xl p-4 font-mono text-sm max-h-60 overflow-y-auto space-y-2 border border-gray-900">
-            </div>
-        </div>
+            <button type="submit" id="submitBtn">Mulai Serangan OTP</button>
+        </form>
+        <div id="status"></div>
     </div>
 
     <script>
-        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        document.getElementById('spamForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Mencegah halaman reload
+            
+            const noHp = document.getElementById('noHp').value;
+            const jmlResend = document.getElementById('jmlResend').value;
+            const btn = document.getElementById('submitBtn');
+            const statusDiv = document.getElementById('status');
 
-        async function startSpamProcess() {
-            const phoneInput = document.getElementById('phone');
-            const cyclesInput = document.getElementById('cycles');
-            const btnSend = document.getElementById('btnSend');
-            const logSection = document.getElementById('logSection');
-            const logOutput = document.getElementById('logOutput');
+            btn.disabled = true;
+            statusDiv.innerText = "Memproses, mohon tunggu...";
 
-            const phone = phoneInput.value.trim();
-            const totalCycles = parseInt(cyclesInput.value) || 1;
+            try {
+                // Memanggil API backend Flask kita
+                const response = await fetch('/api/spam', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ no_hp: noHp, resend: jmlResend })
+                });
 
-            if (!phone) {
-                alert('Masukkan nomor HP terlebih dahulu!');
-                return;
-            }
-
-            btnSend.disabled = true;
-            btnSend.className = "w-full py-3 bg-gray-600 text-gray-400 font-bold rounded-xl cursor-not-allowed";
-            logSection.classList.remove('hidden');
-            logOutput.innerHTML = "";
-
-            // Loop siklus dikontrol oleh sisi client (browser) agar Vercel API tidak timeout
-            for (let i = 1; i <= totalCycles; i++) {
-                logOutput.innerHTML += `<p class="text-cyan-400 font-bold">--- Siklus ${i}/${totalCycles} ---</p>`;
-                btnSend.innerText = `Memproses Siklus ${i}/${totalCycles}...`;
-
-                try {
-                    const response = await fetch('/api/spam', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ phone: phone })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.status === 'success') {
-                        data.results.forEach(res => {
-                            const statusColor = res.status === 'OK' ? 'text-green-400' : 'text-red-400';
-                            logOutput.innerHTML += `<p class="text-gray-400">-> ${res.provider}: [<span class="${statusColor} font-bold">${res.status}</span>]</p>`;
-                        });
-                    } else {
-                        logOutput.innerHTML += `<p class="text-red-500">[!] Error: ${data.message}</p>`;
-                        break;
-                    }
-                } catch (error) {
-                    logOutput.innerHTML += `<p class="text-red-500">[!] Gagal terhubung ke Vercel Serverless.</p>`;
-                    break;
+                const result = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.style.color = "#3fb950";
+                    statusDiv.innerText = "Sukses! Cek console browser untuk detail.";
+                    console.log("Hasil:", result);
+                } else {
+                    statusDiv.style.color = "#f85149";
+                    statusDiv.innerText = "Error: " + result.pesan;
                 }
-
-                if (i < totalCycles) {
-                    const cooldownMs = 62000; // Jeda 62 detik asli sesuai script terminal Anda
-                    logOutput.innerHTML += `<p class="text-yellow-500 italic">[i] Cooldown ${cooldownMs/1000} detik sebelum siklus berikutnya...</p>`;
-                    logOutput.scrollTop = logOutput.scrollHeight;
-                    await sleep(cooldownMs);
-                }
+            } catch (error) {
+                statusDiv.style.color = "#f85149";
+                statusDiv.innerText = "Gagal terhubung ke server.";
+            } finally {
+                btn.disabled = false;
             }
-
-            logOutput.innerHTML += `<p class="text-green-400 font-bold mt-2">[✓] Semua siklus selesai dijalankan!</p>`;
-            logOutput.scrollTop = logOutput.scrollHeight;
-
-            btnSend.disabled = false;
-            btnSend.innerText = "Tembak OTP!";
-            btnSend.className = "w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-gray-950 font-bold rounded-xl transition duration-200 cursor-pointer shadow-lg shadow-cyan-500/20";
-        }
+        });
     </script>
 </body>
 </html>
