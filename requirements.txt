@@ -1,0 +1,4 @@
+flask
+pycryptodomex
+requests
+rich

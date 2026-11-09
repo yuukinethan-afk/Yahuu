@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPAMSCAM Dashboard</title>
+    <script src="https://jsdelivr.net"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-700">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-black tracking-wider text-cyan-400">SPAMSCAM</h1>
+            <p class="text-sm text-gray-400 mt-1">Multi-provider · Web Dashboard</p>
+        </div>
+
+        <div class="space-y-5">
+            <!-- Input Nomor HP -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Nomor HP Target</label>
+                <input type="text" id="phone" placeholder="Contoh: 089535861960" 
+                       class="w-full px-4 py-3 bg-gray-950 border border-gray-700 rounded-xl focus:outline-none focus:border-cyan-500 text-white placeholder-gray-600 transition">
+            </div>
+
+            <!-- Input Jumlah Resend (Range Slider) -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-sm font-semibold text-gray-300">Jumlah Resend (Siklus)</label>
+                    <!-- Indikator Angka -->
+                    <span id="rangeValue" class="px-3 py-1 bg-cyan-500/20 text-cyan-400 font-bold rounded-md border border-cyan-500/30 text-sm">1</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Slider Range -->
+                    <input type="range" id="cycles" min="1" max="20" value="1" 
+                           oninput="updateRangeValue(this.value)"
+                           class="w-full h-2 bg-gray-950 rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none">
+                </div>
+                <p class="text-xs text-gray-500 mt-2">* Ada jeda cooldown otomatis antar siklus agar aman dari timeout.</p>
+            </div>
+
+            <button id="btnSend" onclick="startSpamProcess()" 
+                    class="w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-gray-950 font-bold rounded-xl transition duration-200 cursor-pointer shadow-lg shadow-cyan-500/20">
+                Tembak OTP!
+            </button>
+        </div>
+
+        <!-- Log Output -->
+        <div id="logSection" class="mt-6 hidden">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Log Aktivitas:</h3>
+            <div id="logOutput" class="bg-gray-950 rounded-xl p-4 font-mono text-sm max-h-60 overflow-y-auto space-y-2 border border-gray-900">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Memperbarui teks indikator angka saat slider digeser
+        function updateRangeValue(val) {
+            document.getElementById('rangeValue').innerText = val;
+        }
+
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function startSpamProcess() {
+            const phoneInput = document.getElementById('phone');
+            const cyclesInput = document.getElementById('cycles');
+            const btnSend = document.getElementById('btnSend');
+            const logSection = document.getElementById('logSection');
+            const logOutput = document.getElementById('logOutput');
+
+            const phone = phoneInput.value.trim();
+            const totalCycles = parseInt(cyclesInput.value) || 1;
+
+            if (!phone) {
+                alert('Masukkan nomor HP terlebih dahulu!');
+                return;
+            }
+
+            // Kunci UI
+            btnSend.disabled = true;
+            btnSend.className = "w-full py-3 bg-gray-600 text-gray-400 font-bold rounded-xl cursor-not-allowed";
+            logSection.classList.remove('hidden');
+            logOutput.innerHTML = "";
+
+            // Looping siklus dikontrol via Client-side JS
+            for (let i = 1; i <= totalCycles; i++) {
+                logOutput.innerHTML += `<p class="text-cyan-400 font-bold">--- Siklus ${i}/${totalCycles} ---</p>`;
+                btnSend.innerText = `Memproses Siklus ${i}/${totalCycles}...`;
+
+                try {
+                    const response = await fetch('/api/spam', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: phone })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        data.results.forEach(res => {
+                            const statusColor = res.status === 'OK' ? 'text-green-400' : 'text-red-400';
+                            logOutput.innerHTML += `<p class="text-gray-400">-> ${res.provider}: [<span class="${statusColor} font-bold">${res.status}</span>]</p>`;
+                        });
+                    } else {
+                        logOutput.innerHTML += `<p class="text-red-500">[!] Error: ${data.message}</p>`;
+                        break;
+                    }
+                } catch (error) {
+                    logOutput.innerHTML += `<p class="text-red-500">[!] Gagal terhubung ke server Vercel.</p>`;
+                    break;
+                }
+
+                // Efek jeda waktu antar siklus resend
+                if (i < totalCycles) {
+                    const cooldownMs = 5000; // Standar jeda simulasi 5 detik di web
+                    logOutput.innerHTML += `<p class="text-yellow-500 italic">[i] Cooldown ${cooldownMs/1000} detik sebelum siklus berikutnya...</p>`;
+                    logOutput.scrollTop = logOutput.scrollHeight;
+                    await sleep(cooldownMs);
+                }
+            }
+
+            logOutput.innerHTML += `<p class="text-green-400 font-bold mt-2">[✓] Semua siklus selesai dijalankan!</p>`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+
+            // Kembalikan tombol semula
+            btnSend.disabled = false;
+            btnSend.innerText = "Tembak OTP!";
+            btnSend.className = "w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-gray-950 font-bold rounded-xl transition duration-200 cursor-pointer shadow-lg shadow-cyan-500/20";
+        }
+    </script>
+</body>
+</html>
